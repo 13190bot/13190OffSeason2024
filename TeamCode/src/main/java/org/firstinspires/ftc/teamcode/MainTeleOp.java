@@ -9,15 +9,18 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.MicroCMD.Command;
 import org.firstinspires.ftc.teamcode.MicroCMD.CommandScheduler;
 
-import java.util.function.Consumer;
-
 @TeleOp(name="org.firstinspires.ftc.teamcode.MainTeleOp")
 public class MainTeleOp extends LinearOpMode {
-    DcMotor fl, bl, fr, br;
+    DcMotor fl, bl, fr, br, intake, liftLeft, liftRight;
     Servo arm, pitch, claw;
-    public double armIncrement = 0.0005;
+//    public double armIncrement = 0.0005;
+    public double intakePower = 0.4;
+    public static double maxLift = 100;
+    public static double minLift = 0;
 
 
+
+    // OLD
     public final static double armMin = 0.15; // arm on board
     public final static double armMax = 0.72; // arm: when arm on dustpan
 
@@ -37,9 +40,7 @@ public class MainTeleOp extends LinearOpMode {
             // arm is in "scoring position"
             new Command(
                 // arm is mostly up: adjust pitch so that pitch/claw is perpendicular against wall
-                new Command(() -> {
-                    arm.setPosition(armPosition);
-                }),
+                new Command(() -> arm.setPosition(armPosition)),
                 // pitch delay code to sync with axon
                 new Command(axonInitialized ? (noPitchDelayForNext ? 0 : 300) : 500),
                 new Command(() -> {
@@ -73,7 +74,7 @@ public class MainTeleOp extends LinearOpMode {
                 new Command(() -> claw.setPosition(clawClosed)), // Close claw
                 new Command(250),
                 new Command(() -> armPosition = 0.66),
-                new Command(() -> updateArm()),
+                new Command(this::updateArm),
                 new Command(250),
                 new Command(() -> pitch.setPosition(0.168))
             ).schedule();
@@ -96,13 +97,13 @@ public class MainTeleOp extends LinearOpMode {
                 new Command(50),
 
                 new Command(() -> armPosition = armMax),
-                new Command(() -> updateArm()),
+                new Command(this::updateArm),
                 new Command(250),
 
                 new Command(() -> claw.setPosition(clawClosed)), // Close claw
                 new Command(200),
                 new Command(() -> armPosition = 0.66),
-                new Command(() -> updateArm()),
+                new Command(this::updateArm),
                 new Command(() -> pitch.setPosition(0.168))
             ).schedule();
 
@@ -113,7 +114,7 @@ public class MainTeleOp extends LinearOpMode {
 
             new Command(
                 new Command(() -> armPosition = armMin), // Slightly above pixel bottom
-                new Command(() -> updateArm())
+                new Command(this::updateArm)
             ).schedule();
 
             armPickupStage = 2;
@@ -136,7 +137,7 @@ public class MainTeleOp extends LinearOpMode {
 
                     // Move arm back
                     new Command(() -> armPosition = 0.655),
-                    new Command(() -> updateArm())
+                    new Command(this::updateArm)
             ).schedule();
 
             armPickupStage = 0;
@@ -148,7 +149,7 @@ public class MainTeleOp extends LinearOpMode {
 
 
     @Override
-    public void runOpMode() throws InterruptedException {
+    public void runOpMode() {
         fl = hardwareMap.dcMotor.get("backLeft");
         bl = hardwareMap.dcMotor.get("frontLeft");
         fr = hardwareMap.dcMotor.get("backRight");
@@ -161,10 +162,22 @@ public class MainTeleOp extends LinearOpMode {
         fr.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         br.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-
         arm = hardwareMap.servo.get("arm");
         pitch = hardwareMap.servo.get("pitch");
         claw = hardwareMap.servo.get("claw");
+
+        intake = hardwareMap.dcMotor.get("intakeMotor");
+
+        liftLeft = hardwareMap.dcMotor.get("liftLeft");
+        liftRight = hardwareMap.dcMotor.get("liftRight");
+        liftRight.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        liftLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        liftRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        liftLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        liftRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
 
         Gamepad lastGamepad1 = new Gamepad();
         Gamepad lastGamepad2 = new Gamepad();
@@ -179,11 +192,9 @@ public class MainTeleOp extends LinearOpMode {
 //            double rx = gamepad1.right_stick_x;
             double rx = gamepad1.right_trigger - gamepad1.left_trigger;
 
-            if (gamepad1.left_bumper && gamepad1.right_bumper) {
-
-            } else if (gamepad1.left_bumper) {
+            if (gamepad1.left_bumper & !gamepad1.right_bumper) {
                 rx = rx - y;
-            } else if (gamepad1.right_bumper) {
+            } else if (!gamepad1.left_bumper & gamepad1.right_bumper) {
                 rx = rx + y;
             }
 
@@ -202,29 +213,45 @@ public class MainTeleOp extends LinearOpMode {
             br.setPower(backRightPower);
 
 
-            if (gamepad1.dpad_left) {
-                armPosition += armIncrement;
-                arm.setPosition(armPosition);
-            }
-            if (gamepad1.dpad_right) {
-                armPosition -= armIncrement;
-                arm.setPosition(armPosition);
+//            if (gamepad1.dpad_left) {
+//                armPosition += armIncrement;
+//                arm.setPosition(armPosition);
+//            }
+//            if (gamepad1.dpad_right) {
+//                armPosition -= armIncrement;
+//                arm.setPosition(armPosition);
+//            }
+
+            if (gamepad1.b && !lastGamepad1.b) {
+                armPickup();
             }
 
-            if (gamepad1.a && !lastGamepad1.a) {
+            if (gamepad1.a) {
+                intake.setPower(intakePower);
+            } else {
+                intake.setPower(0);
+            }
+
+            double ry = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
+            double cep = liftLeft.getCurrentPosition();
+            if (ry > 0 && cep < maxLift || ry < 0 && cep > minLift) {
+                liftLeft.setPower(-ry);
+                liftRight.setPower(-ry);
+            }
+
+
+
+
+            // TESTING
+
+            if (gamepad1.x && !lastGamepad1.x) {
                 CommandScheduler.schedule(
                         new Command(
-                                new Command(() -> {
-                                    arm.setPosition(0.6);
-                                }),
-                                new Command(10000),
-                                new Command(() -> {
-                                    arm.setPosition(0.4);
-                                })
+                                new Command(() -> arm.setPosition(0.6)),
+                                new Command(1000),
+                                new Command(() -> arm.setPosition(0.4))
                         )
                 );
-
-//                armPickup.schedule();
             }
 
 
