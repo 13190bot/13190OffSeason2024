@@ -15,7 +15,7 @@ public class MainTeleOp extends LinearOpMode {
     Servo arm, pitch, claw;
 //    public double armIncrement = 0.0005;
     public double intakePower = 0.4;
-    public static double maxLift = 100;
+    public static double maxLift = 4600;
     public static double minLift = 0;
 
 
