@@ -82,8 +82,12 @@ public class Command {
         };
     }
 
-    public Command(Runnable function) {
-        this.function = function;
+    public Command(Runnable... functions) {
+        this.function = () -> {
+            for (int i = 0; i < functions.length; i++) {
+                functions[i].run();
+            }
+        };
     }
 
     public Command(double lengthms, Command... commands) {
@@ -101,6 +105,15 @@ public class Command {
                 }
             } else {
                 commands[commands.length - 1].run();
+            }
+        };
+    }
+
+    public Command(double lengthms, Runnable... functions) {
+        this.lengthns = lengthms * 1000000;
+        this.function = () -> {
+            for (int i = 0; i < functions.length; i++) {
+                functions[i].run();
             }
         };
     }
