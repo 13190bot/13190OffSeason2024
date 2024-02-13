@@ -1,3 +1,16 @@
+/*
+MainTeleOp.java
+
+For 2023 CENTERSTAGE FTC
+
+
+
+
+Ideas:
+- Possibly use left and right bumpers for intake and advance armstage
+- Recorder?
+ */
+
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
