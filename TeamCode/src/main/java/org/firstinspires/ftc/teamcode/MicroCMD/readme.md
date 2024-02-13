@@ -1,4 +1,4 @@
-# MicroCMD: An easy, fast command scheduler
+# MicroCMD: An easy, fast command scheduler for FTC
 
 ## How to use:
 - Just copy all the files in [MicroCMD](./) to inside your TeamCode or anywhere you can access
@@ -13,7 +13,7 @@
   - Only 2 files: [Command.java](Command.java) and [CommandScheduler.java](CommandScheduler.java)
   - Each loop: `CommandScheduler.loop()`
   - Synthesizing commands:
-    - Create and schedule a command: `new Command(...).schedule`
+    - Create and schedule a command: `new Command(...).schedule();`
     - Create command from Runnable: `new Command(() -> {...})`
     - Create command from list of commands:
       - Will be run synchronously and chronologically
