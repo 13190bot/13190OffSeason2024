@@ -35,6 +35,7 @@ public class MainTeleOp extends LinearOpMode {
     // LockRotate
     public static double lockRotateIncrement = Math.toRadians(180);
     public Double lastLockRotateStartHeading = null;
+    public static double wheelRotateMultiplier = 0.9; // forward will be multiplied by this when WheelRotating
 
 
 
@@ -169,10 +170,10 @@ public class MainTeleOp extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        fl = hardwareMap.dcMotor.get("backLeft");
-        bl = hardwareMap.dcMotor.get("frontLeft");
-        fr = hardwareMap.dcMotor.get("backRight");
-        br = hardwareMap.dcMotor.get("frontRight");
+        fl = hardwareMap.get(DcMotor.class, "backLeft");
+        bl = hardwareMap.get(DcMotor.class, "frontLeft");
+        fr = hardwareMap.get(DcMotor.class, "backRight");
+        br = hardwareMap.get(DcMotor.class, "frontRight");
         bl.setDirection(DcMotorSimple.Direction.REVERSE);
         fr.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -181,14 +182,14 @@ public class MainTeleOp extends LinearOpMode {
         fr.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         br.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        arm = hardwareMap.servo.get("arm");
-        pitch = hardwareMap.servo.get("pitch");
-        claw = hardwareMap.servo.get("claw");
+        arm = hardwareMap.get(Servo.class, "arm");
+        pitch = hardwareMap.get(Servo.class, "pitch");
+        claw = hardwareMap.get(Servo.class, "claw");
 
-        intake = hardwareMap.dcMotor.get("intakeMotor");
+        intake = hardwareMap.get(DcMotor.class, "intakeMotor");
 
-        liftLeft = hardwareMap.dcMotor.get("liftLeft");
-        liftRight = hardwareMap.dcMotor.get("liftRight");
+        liftLeft = hardwareMap.get(DcMotor.class, "liftLeft");
+        liftRight = hardwareMap.get(DcMotor.class, "liftRight");
         liftRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         liftLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -229,8 +230,10 @@ public class MainTeleOp extends LinearOpMode {
 
             if (gamepad1.left_bumper & !gamepad1.right_bumper) {
                 rx = rx - y;
+                y *= wheelRotateMultiplier;
             } else if (!gamepad1.left_bumper & gamepad1.right_bumper) {
                 rx = rx + y;
+                y *= wheelRotateMultiplier;
             }
 
             // LockRotate
@@ -289,13 +292,11 @@ public class MainTeleOp extends LinearOpMode {
             // TESTING
 
             if (gamepad1.x && !lastGamepad1.x) {
-                CommandScheduler.schedule(
-                        new Command(
-                                new Command(() -> arm.setPosition(0.6)),
-                                new Command(1000),
-                                new Command(() -> arm.setPosition(0.4))
-                        )
-                );
+                new Command(
+                    new Command(() -> arm.setPosition(0.6)),
+                    new Command(1000),
+                    new Command(() -> arm.setPosition(0.4))
+                ).schedule();
             }
 
 
