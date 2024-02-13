@@ -82,6 +82,10 @@ public class Command {
         };
     }
 
+    public Command(Runnable function) {
+        this.function = function;
+    }
+
     public Command(double lengthms, Command... commands) {
         this.lengthns = lengthms * 1000000;
         resetRunnable = () -> {
