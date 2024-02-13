@@ -9,16 +9,16 @@ For 2023 CENTERSTAGE FTC
 Ideas:
 - Possibly use left and right bumpers for intake and advance armstage
 - Recorder?
+- LockRotate
  */
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.*;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.MicroCMD.Command;
 import org.firstinspires.ftc.teamcode.MicroCMD.CommandScheduler;
 
@@ -26,10 +26,16 @@ import org.firstinspires.ftc.teamcode.MicroCMD.CommandScheduler;
 public class MainTeleOp extends LinearOpMode {
     DcMotor fl, bl, fr, br, intake, liftLeft, liftRight;
     Servo arm, pitch, claw;
+    IMU imu;
+
 //    public double armIncrement = 0.0005;
     public double intakePower = 0.4;
     public static double maxLift = 4600;
     public static double minLift = 0;
+    // LockRotate
+    public static double lockRotateIncrement = Math.toRadians(180);
+    public Double lastLockRotateStartHeading = null;
+
 
 
 
@@ -191,6 +197,12 @@ public class MainTeleOp extends LinearOpMode {
         liftLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         liftRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
+        imu = hardwareMap.get(IMU.class, "imu");
+        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
+        imu.initialize(parameters);
+
 
         Gamepad lastGamepad1 = new Gamepad();
         Gamepad lastGamepad2 = new Gamepad();
@@ -200,6 +212,16 @@ public class MainTeleOp extends LinearOpMode {
         while (opModeIsActive()) {
             CommandScheduler.loop();
 
+            // IMU
+            // This button choice was made so that it is hard to hit on accident,
+            // it can be freely changed based on preference.
+            // The equivalent button is start on Xbox-style controllers.
+            if (gamepad1.options) {
+                imu.resetYaw();
+            }
+            double botHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+
+            // DRIVE
             double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
             double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
 //            double rx = gamepad1.right_stick_x;
@@ -209,6 +231,20 @@ public class MainTeleOp extends LinearOpMode {
                 rx = rx - y;
             } else if (!gamepad1.left_bumper & gamepad1.right_bumper) {
                 rx = rx + y;
+            }
+
+            // LockRotate
+            if (rx != 0) {
+                if (lastLockRotateStartHeading == null) {
+                    lastLockRotateStartHeading = botHeading;
+                }
+
+                // Limit
+                if (botHeading - lastLockRotateStartHeading > lockRotateIncrement || botHeading - lastLockRotateStartHeading < -lockRotateIncrement) {
+                    rx = 0;
+                }
+            } else {
+                lastLockRotateStartHeading = null;
             }
 
             // Denominator is the largest motor power (absolute value) or 1
@@ -225,32 +261,27 @@ public class MainTeleOp extends LinearOpMode {
             fr.setPower(frontRightPower);
             br.setPower(backRightPower);
 
-
-//            if (gamepad1.dpad_left) {
-//                armPosition += armIncrement;
-//                arm.setPosition(armPosition);
-//            }
-//            if (gamepad1.dpad_right) {
-//                armPosition -= armIncrement;
-//                arm.setPosition(armPosition);
-//            }
-
+            // ARM
             if (gamepad1.b && !lastGamepad1.b) {
                 armPickup();
             }
 
+            // INTAKE
             if (gamepad1.a) {
                 intake.setPower(intakePower);
             } else {
                 intake.setPower(0);
             }
 
+            // LIFT
             double ry = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
             double cep = liftLeft.getCurrentPosition();
             if (ry > 0 && cep < maxLift || ry < 0 && cep > minLift) {
                 liftLeft.setPower(-ry);
                 liftRight.setPower(-ry);
             }
+
+
 
 
 
