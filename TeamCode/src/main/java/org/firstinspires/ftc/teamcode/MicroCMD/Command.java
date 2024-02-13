@@ -62,19 +62,7 @@ public class Command {
         this.function = null;
     }
 
-    public Command(Runnable... functions) {
-        this.function = () -> {
-            for (int i = 0; i < functions.length; i++) {
-                functions[i].run();
-            }
-        };
-    }
-
     public Command(Command... commands) {
-//        if (commands.length != 1) {
-//            isDoneUseDone = true;
-//            done = false;
-//        }
         done = false;
         resetRunnable = () -> {
             for (int i = 0; i < commands.length; i++) {
@@ -90,15 +78,6 @@ public class Command {
             } else {
                 commands[commands.length - 1].run();
                 done = commands[currenti].isDone();
-            }
-        };
-    }
-
-    public Command(double lengthms, Runnable... functions) {
-        this.lengthns = lengthms * 1000000;
-        this.function = () -> {
-            for (int i = 0; i < functions.length; i++) {
-                functions[i].run();
             }
         };
     }
@@ -131,36 +110,4 @@ public class Command {
 
 
 
-
-    // DOESN'T WORK
-    // Generic Catch-all (Command, Runnable, lengthms)
-//    public Command(Object... objects) {
-//
-//    }
-
-
-
-    // Array constructors
-//    public Command(Command[] commands) {
-//        for (int i = 0; i < commands.length; i++) {
-//            isDoneUseDone = true;
-//            done = false;
-//            resetRunnable = () -> {
-//                for (int i = 0; i < commands.length; i++) {
-//                    commands[i].reset();
-//                }
-//            };
-//            this.function = () -> {
-//                if (currenti < commands.length) {
-//                    commands[currenti].run();
-//                    if (commands[currenti].isDone()) {
-//                        currenti++;
-//                    }
-//                } else {
-//                    commands[commands.length - 1].run();
-//                    done = commands[currenti].isDone();
-//                }
-//            };
-//        }
-//    }
 }
