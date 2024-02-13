@@ -1371,7 +1371,7 @@ Changes include:
  * fix to correct race condition between .run() and .close() in ReadWriteRunnableStandard.
  * updated FTDI driver
  * made ReadWriteRunnableStanard interface public.
- * fixed off-by-one errors in Command constructor
+ * fixed off-by-one errors in org.firstinspires.ftc.teamcode.MicroCMD.Command constructor
  * moved specific hardware implmentations into their own package.
  * moved specific gamepad implemnatations to the hardware library.
  * changed LICENSE file to new BSD version.
