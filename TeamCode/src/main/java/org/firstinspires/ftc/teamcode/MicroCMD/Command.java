@@ -5,6 +5,7 @@ Part of MicroCMD
 - When passed multiple commands, they will be run "synchronously"
 - There MUST NOT be any sleeps / yields in the command; it must be instantaneous.
 - When creating a command from multiple runnables, it will be synchronously run.
+- WARNING: The same command should not be scheduled at the same time
 
 
 Inspiration:
@@ -20,6 +21,7 @@ public class Command {
     public double endns = 0;
     public boolean firstRun = true;
     public int currenti = 0;
+    public boolean scheduled = false;
 
     public Boolean done = null;
 
@@ -41,6 +43,10 @@ public class Command {
             startns = System.nanoTime();
             endns = startns + lengthns;
             firstRun = false;
+            currenti = 0;
+            if (done != null) {
+                done = false;
+            }
         }
         if (function != null) {
             function.run();
@@ -55,6 +61,8 @@ public class Command {
     }
 
     public void schedule() {
+        // Reset
+        this.reset();
         CommandScheduler.schedule(this);
     }
 
@@ -69,15 +77,18 @@ public class Command {
                 commands[i].reset();
             }
         };
+        commands[0].schedule();
         this.function = () -> {
-            if (currenti < commands.length) {
-                commands[currenti].run();
-                if (commands[currenti].isDone()) {
+            if (!done) {
+                Command command = commands[currenti];
+                if (command.isDone()) {
                     currenti++;
+                    if (currenti < commands.length) {
+                        commands[currenti].schedule();
+                    } else {
+                        done = true;
+                    }
                 }
-            } else {
-                commands[commands.length - 1].run();
-                done = commands[currenti].isDone();
             }
         };
     }
@@ -97,14 +108,16 @@ public class Command {
                 commands[i].reset();
             }
         };
+        commands[0].schedule();
         this.function = () -> {
             if (currenti < commands.length) {
-                commands[currenti].run();
-                if (commands[currenti].isDone()) {
+                Command command = commands[currenti];
+                if (command.isDone()) {
                     currenti++;
+                    if (currenti < commands.length) {
+                        commands[currenti].schedule();
+                    }
                 }
-            } else {
-                commands[commands.length - 1].run();
             }
         };
     }
@@ -122,9 +135,4 @@ public class Command {
         this.lengthns = lengthms * 1000000;
         this.function = null;
     }
-
-
-
-
-
 }

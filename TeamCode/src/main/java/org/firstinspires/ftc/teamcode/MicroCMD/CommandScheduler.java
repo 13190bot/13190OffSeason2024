@@ -17,11 +17,13 @@ public class CommandScheduler {
         for (int i = 0; i < functions.length; i++) {
             Command command = new Command(functions[i]);
             currentCommands.add(command);
+            command.scheduled = true;
         }
     }
     public static void schedule(Command... commands) {
         for (int i = 0; i < commands.length; i++) {
             currentCommands.add(commands[i]);
+            commands[i].scheduled = true;
         }
     }
 
@@ -34,6 +36,7 @@ public class CommandScheduler {
             command.run();
             if (command.isDone()) {
                 currentCommands.remove(i2);
+                command.scheduled = false;
                 offseti--;
             }
         }

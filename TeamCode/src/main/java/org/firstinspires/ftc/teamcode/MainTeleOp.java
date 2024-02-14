@@ -243,7 +243,9 @@ public class MainTeleOp extends LinearOpMode {
                 }
 
                 // Limit
-                if (botHeading - lastLockRotateStartHeading > lockRotateIncrement || botHeading - lastLockRotateStartHeading < -lockRotateIncrement) {
+                // add rx limits later (&& rx < 0, && rx > 0
+                if ((botHeading - lastLockRotateStartHeading > lockRotateIncrement) ||
+                    (botHeading - lastLockRotateStartHeading < -lockRotateIncrement)) {
                     rx = 0;
                 }
             } else {
@@ -277,7 +279,7 @@ public class MainTeleOp extends LinearOpMode {
             }
 
             // LIFT
-            double ry = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
+            double ry = -gamepad1.right_stick_y; // Remember, Y stick value is reversed
             double cep = liftLeft.getCurrentPosition();
             if (ry > 0 && cep < maxLift || ry < 0 && cep > minLift) {
                 liftLeft.setPower(-ry);
