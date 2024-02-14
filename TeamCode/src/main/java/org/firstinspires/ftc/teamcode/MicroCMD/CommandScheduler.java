@@ -3,6 +3,7 @@ Command.java
 Part of MicroCMD
 
 - When passed multiple commands, they will be run "asynchronously"
+- Trying to schedule a command that is currently scheduled will result in nothing happening
  */
 package org.firstinspires.ftc.teamcode.MicroCMD;
 import java.util.ArrayList;
@@ -12,18 +13,17 @@ public class CommandScheduler {
     // List of currently queued commands
     public static ArrayList<Command> currentCommands = new ArrayList<>();
 
-    // Add commands to queue (schedule): They are run "asynchronously"
-    public static void schedule(Runnable... functions) {
-        for (int i = 0; i < functions.length; i++) {
-            Command command = new Command(functions[i]);
-            currentCommands.add(command);
-            command.scheduled = true;
-        }
-    }
+    // Add commands to queue (schedule): They are run "asynchronously"\
     public static void schedule(Command... commands) {
         for (int i = 0; i < commands.length; i++) {
-            currentCommands.add(commands[i]);
-            commands[i].scheduled = true;
+            if (commands[i].scheduled) {
+                // ALREADY SCHEDULED!
+
+                // DO NOTHING
+            } else {
+                currentCommands.add(commands[i]);
+                commands[i].scheduled = true;
+            }
         }
     }
 

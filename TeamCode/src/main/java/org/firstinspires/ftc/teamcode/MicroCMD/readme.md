@@ -11,7 +11,7 @@
   - If you are moving from an FTCLib project, use the [FTCLibCompat](FTCLibCompat) package
 - Lightweight, simple
   - Only 2 files: [Command.java](Command.java) and [CommandScheduler.java](CommandScheduler.java)
-  - Each loop: `CommandScheduler.loop()`
+  - Each loop: `CommandScheduler.loop();`
   - Synthesizing commands:
     - Create and schedule a command: `new Command(...).schedule();`
     - Create command from Runnable: `new Command(() -> {...})`
