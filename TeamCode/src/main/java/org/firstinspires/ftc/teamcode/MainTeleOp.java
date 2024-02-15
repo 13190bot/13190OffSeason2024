@@ -35,7 +35,7 @@ public class MainTeleOp extends LinearOpMode {
     // LockRotate
     public static double lockRotateIncrement = Math.toRadians(180);
     public Double lastLockRotateStartHeading = null;
-    public static double wheelRotateMultiplier = 0.9; // forward will be multiplied by this when WheelRotating
+    public static double wheelRotateMultiplier = 0.7; // forward will be multiplied by this when WheelRotating
 
 
 
