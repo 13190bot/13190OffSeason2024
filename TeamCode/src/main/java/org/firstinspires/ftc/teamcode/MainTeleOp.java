@@ -243,9 +243,11 @@ public class MainTeleOp extends LinearOpMode {
                 }
 
                 // Limit
-                // add rx limits later (&& rx < 0, && rx > 0
-                if ((botHeading - lastLockRotateStartHeading > lockRotateIncrement) ||
-                    (botHeading - lastLockRotateStartHeading < -lockRotateIncrement)) {
+                // add rx limits later (&& rx < 0, && rx > 0)
+                telemetry.addData("a", (AngleUnit.normalizeRadians(botHeading - lastLockRotateStartHeading)));
+                telemetry.addData("b", AngleUnit.normalizeRadians(lockRotateIncrement));
+                if ((AngleUnit.normalizeRadians(botHeading - lastLockRotateStartHeading) > lockRotateIncrement) ||
+                    (AngleUnit.normalizeRadians(botHeading - lastLockRotateStartHeading) < -lockRotateIncrement)) {
                     rx = 0;
                 }
             } else {
@@ -302,6 +304,10 @@ public class MainTeleOp extends LinearOpMode {
             }
 
 
+
+            // telemetry
+            telemetry.addData("lastLockRotateStartHeading", lastLockRotateStartHeading);
+            telemetry.update();
 
 
 
