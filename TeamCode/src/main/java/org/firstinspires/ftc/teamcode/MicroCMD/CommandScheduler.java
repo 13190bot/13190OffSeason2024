@@ -23,6 +23,7 @@ public class CommandScheduler {
             } else {
                 currentCommands.add(commands[i]);
                 commands[i].scheduled = true;
+                commands[i].runOnSchedule();
             }
         }
     }
@@ -34,7 +35,9 @@ public class CommandScheduler {
             int i2 = i + offseti;
             Command command = currentCommands.get(i2);
             command.run();
+            command.runOnRun();
             if (command.isDone()) {
+                command.runOnDone();
                 currentCommands.remove(i2);
                 command.scheduled = false;
                 offseti--;

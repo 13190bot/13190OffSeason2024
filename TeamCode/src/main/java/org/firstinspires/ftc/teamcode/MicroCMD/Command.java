@@ -13,9 +13,10 @@ Inspiration:
  */
 package org.firstinspires.ftc.teamcode.MicroCMD;
 
+import java.util.ArrayList;
 
 public class Command {
-    public Runnable function;
+    public Runnable function = null;
     public double lengthns = 0;
     public double startns = 0;
     public double endns = 0;
@@ -26,6 +27,10 @@ public class Command {
     public Boolean done = null;
 
     public Runnable resetRunnable = null;
+
+    public ArrayList<Command> doneRunnable = null; // when done
+    public ArrayList<Command> scheduleRunnable = null; // when scheduled
+    public ArrayList<Command> runRunnable = null; // when running
 
     public boolean isDone() {
         if (done != null) {
@@ -53,21 +58,70 @@ public class Command {
         }
     }
 
-    public void reset() {
+    public void runOn(ArrayList<Command> runnable) {
+        if (runnable != null) {
+            for (int i = 0; i < runnable.size(); i++) {
+                runnable.get(i).schedule();
+            }
+        }
+    }
+
+    public void runOnDone() {
+        runOn(this.doneRunnable);
+    }
+
+    public void runOnSchedule() {
+        runOn(this.scheduleRunnable);
+    }
+
+    public void runOnRun() {
+        runOn(this.runRunnable);
+    }
+
+    public Command reset() {
         if (resetRunnable != null) {
             resetRunnable.run();
         }
-        firstRun = false;
+        firstRun = true;
+        return this;
     }
 
-    public void schedule() {
+    public Command schedule() {
         // Reset
         this.reset();
         CommandScheduler.schedule(this);
+        return this;
+    }
+
+    public Command on(ArrayList<Command> runnable, Command[] commands) {
+        for (int i = 0; i < commands.length; i++) {
+            runnable.add(commands[i]);
+        }
+        return this;
+    }
+
+    public Command onDone(Command... commands) {
+        if (this.doneRunnable == null) {
+            this.doneRunnable = new ArrayList<>();
+        }
+        return on(this.doneRunnable, commands);
+    }
+
+    public Command onSchedule(Command... commands) {
+        if (this.scheduleRunnable == null) {
+            this.scheduleRunnable = new ArrayList<>();
+        }
+        return on(this.scheduleRunnable, commands);
+    }
+
+    public Command onRun(Command... commands) {
+        if (this.runRunnable == null) {
+            this.runRunnable = new ArrayList<>();
+        }
+        return on(this.runRunnable, commands);
     }
 
     public Command() {
-        this.function = null;
     }
 
     public Command(Command... commands) {
@@ -77,20 +131,19 @@ public class Command {
                 commands[i].reset();
             }
         };
-        commands[0].schedule();
-        this.function = () -> {
-            if (!done) {
-                Command command = commands[currenti];
-                if (command.isDone()) {
-                    currenti++;
-                    if (currenti < commands.length) {
-                        commands[currenti].schedule();
-                    } else {
-                        done = true;
-                    }
-                }
-            }
-        };
+        for (int i = 1; i < commands.length; i++) {
+            commands[i - 1].onDone(commands[i]);
+        }
+        this.onSchedule(commands[0]);
+        commands[commands.length - 1].onDone(new Command(() -> {
+            done = true;
+        }));
+//        this.function = () -> {
+//            if (!commands[0].scheduled) {
+//                commands[0].schedule();
+//            }
+//            done = commands[commands.length - 1].isDone();
+//        };
     }
 
     public Command(Runnable... functions) {
