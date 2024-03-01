@@ -228,10 +228,10 @@ public class MainTeleOp extends LinearOpMode {
 //            double rx = gamepad1.right_stick_x;
             double rx = gamepad1.right_trigger - gamepad1.left_trigger;
 
-            if (gamepad1.left_bumper & !gamepad1.right_bumper) {
+            if (gamepad1.left_bumper && !gamepad1.right_bumper) {
                 rx = rx - y;
                 y *= wheelRotateMultiplier;
-            } else if (!gamepad1.left_bumper & gamepad1.right_bumper) {
+            } else if (!gamepad1.left_bumper && gamepad1.right_bumper) {
                 rx = rx + y;
                 y *= wheelRotateMultiplier;
             }
