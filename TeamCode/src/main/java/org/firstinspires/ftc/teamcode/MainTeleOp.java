@@ -24,10 +24,14 @@ import org.firstinspires.ftc.teamcode.MicroCMD.CommandScheduler;
 
 @TeleOp(name="org.firstinspires.ftc.teamcode.MainTeleOp")
 public class MainTeleOp extends LinearOpMode {
+    // CONFIG
+    
+    // Hardware devices
     DcMotor fl, bl, fr, br, intake, liftLeft, liftRight;
     Servo arm, pitch, claw;
     IMU imu;
 
+    // Config
 //    public double armIncrement = 0.0005;
     public double intakePower = 0.4;
     public static double maxLift = 4600;
@@ -39,8 +43,7 @@ public class MainTeleOp extends LinearOpMode {
 
 
 
-
-    // OLD
+    // Arm system config
     public final static double armMin = 0.15; // arm on board
     public final static double armMax = 0.72; // arm: when arm on dustpan
 
@@ -49,11 +52,12 @@ public class MainTeleOp extends LinearOpMode {
 
     public final static double clawClosed = 0.19; // claw: when closed
     public final static double clawOpen = 0.04; // claw: when open
-    public boolean isClawOpen = true;
 
-    public boolean axonInitialized = false;
+    // METHODS
+    public boolean isClawOpen = true;
+    public boolean axonInitialized = false; // has the axon been set to position at least once?
     public boolean noPitchDelayForNext = true; // well, we need to delay pitch when axon is initializing to make it sync
-    public double armPosition = 1;
+    public double armPosition = 1; // position of the arm servo, used internally
     public void updateArm() {
         double armPercent = (armPosition - armMin) / (armMax - armMin);
         if (armPercent < 0.5) {
@@ -170,6 +174,9 @@ public class MainTeleOp extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+        // INIT
+
+        // Initialize motors
         fl = hardwareMap.get(DcMotor.class, "backLeft");
         bl = hardwareMap.get(DcMotor.class, "frontLeft");
         fr = hardwareMap.get(DcMotor.class, "backRight");
